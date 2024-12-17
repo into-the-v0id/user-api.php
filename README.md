@@ -8,25 +8,23 @@ This project is basically just an excuse to write my own little framework. It is
 
 ## Setup
 
-### Select environment
-
-##### Dev
+### Dev
 
 ```console
 $ ln -sr docker-compose.dev.yml docker-compose.yml
+$ cp app/.env.development app/.env
+$ docker compose build
+$ docker compose run app composer install
+$ docker compose up
 ```
 
-##### Prod
+### Prod
 
 ```console
 $ ln -sr docker-compose.prod.yml docker-compose.yml
-```
-
-### Start project
-
-```console
-$ docker composer build
-$ docker composer up
+$ cp app/.env.production app/.env
+$ docker compose build
+$ docker compose up
 ```
 
 ## Example
@@ -45,11 +43,11 @@ $ curl 'http://localhost/users/'
 
 ## Modules
 
-### [Framework](./src/Framework)
+### [Framework](./app/src/Framework/)
 
 This project does not use any existing framework. Instead it builds upon libraries to create its own little framework. The Framework module does not contain any application/domain logic for the User API - it is generic.
 
-### [UserApi](./src/UserApi)
+### [UserApi](./app/src/UserApi/)
 
 This module uses components from the Framework module. The UserApi module contains all the application/domain logic for the User API.
 
