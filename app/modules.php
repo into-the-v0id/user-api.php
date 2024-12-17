@@ -10,10 +10,10 @@ use UserApi\UserApiModule;
 
 return [
     // Framework
-    new ServerModule(),
-    new ConsoleModule(),
     new LoggerModule(),
+    new ConsoleModule(),
     new DatabaseModule(),
+    new ServerModule(),
 
     // User API
     new UserApiModule(),
