@@ -14,8 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Select docker compose config file
+        run: ln -sr docker-compose.dev.yml docker-compose.yml
+
+      - name: Select .env file
+        run: cp app/.env.development app/.env
+
       - name: Build services
         run: docker compose build --quiet
+
+      - name: Install dependencies
+        run: DOCKER_UID="$(id -u)" DOCKER_GID="$(id -g)" docker compose run app composer install
 
       - name: Start services
         run: DOCKER_UID="$(id -u)" DOCKER_GID="$(id -g)" docker compose up --quiet-pull --no-color --wait --detach
