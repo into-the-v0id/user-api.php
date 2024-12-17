@@ -1,0 +1,63 @@
+version: "3.8"
+
+x-templates:
+  default-variables: &default-variables
+    TZ: UTC
+  default-service: &default-service
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    init: true
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      <<: *default-variables
+  as-current-user: &as-current-user
+    user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
+
+services:
+
+  # PHP
+  app:
+    <<:
+      - *default-service
+      - *as-current-user
+    image: user-api/app
+    build: ./app
+    container_name: user-api-app
+    command: "rr serve -c .rr.dev.yaml"
+    environment:
+      "SERVER_BIND": "0.0.0.0"
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    ports:
+      - "80:80"
+    networks:
+      - app
+
+  # PostgreSQL
+  db:
+    <<: *default-service
+    image: postgres:16-alpine
+    container_name: user-api-db
+    environment:
+      <<: *default-variables
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  db-data:
+    name: user-api-db-data
+    driver: local

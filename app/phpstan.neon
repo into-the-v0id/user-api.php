@@ -1,0 +1,20 @@
+parameters:
+    level: 8
+    paths:
+        - bootstrap.php
+        - bin/cli
+        - bin/server
+        - config
+        - src
+    checkUninitializedProperties: true
+    checkImplicitMixed: true
+    checkBenevolentUnionTypes: true
+    treatPhpDocTypesAsCertain: false
+    rememberPossiblyImpureFunctionValues: false
+    ignoreErrors:
+        - identifier: ternary.shortNotAllowed
+
+includes:
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - vendor/bnf/phpstan-psr-container/extension.neon

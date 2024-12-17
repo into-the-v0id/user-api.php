@@ -1,0 +1,11 @@
+path:
+  - bootstrap.php
+  - bin/cli
+  - bin/server
+  - config
+  - src
+extensions:
+  - php
+  - php.dist
+warning: true
+cache: /tmp/phplint

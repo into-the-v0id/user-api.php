@@ -1,0 +1,78 @@
+#!/usr/bin/env php
+<?php
+
+// phpcs:disable SlevomatCodingStandard.Commenting.ForbiddenAnnotations.AnnotationForbidden
+
+/**
+ * @copyright Oliver Amann
+ * @license AGPL-3.0-only
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+declare(strict_types=1);
+
+use Nyholm\Psr7\Response;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Spiral\RoadRunner\Worker;
+use Spiral\RoadRunner\Http\PSR7Worker;
+
+$container = require __DIR__ . '/../bootstrap.php';
+assert($container instanceof ContainerInterface);
+
+$worker = Worker::create();
+
+$factory = new Psr17Factory();
+$psr7 = new PSR7Worker($worker, $factory, $factory, $factory);
+
+$entrypoint = $container->get('entrypoint');
+assert($entrypoint instanceof RequestHandlerInterface);
+
+while (true) {
+    try {
+        $request = $psr7->waitRequest();
+    } catch (Throwable $e) {
+        $psr7->respond(new Response(
+            400,
+            ['Content-Type' => 'text/html; charset=utf-8'],
+            '400 Bad Request',
+        ));
+        $psr7->getWorker()->error((string) $e);
+
+        continue;
+    }
+
+    // Graceful shutdown signal from server
+    if ($request === null) {
+        break;
+    }
+
+    try {
+        $response = $entrypoint->handle($request);
+
+        $psr7->respond($response);
+    } catch (Throwable $e) {
+        $psr7->respond(new Response(
+            500,
+            ['Content-Type' => 'text/html; charset=utf-8'],
+            '500 Internal Server Error',
+        ));
+        $psr7->getWorker()->error((string) $e);
+
+        continue;
+    }
+
+    gc_collect_cycles();
+}

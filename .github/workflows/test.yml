@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-app:
+    name: Test app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build services
+        run: docker compose build --quiet
+
+      - name: Start services
+        run: DOCKER_UID="$(id -u)" DOCKER_GID="$(id -g)" docker compose up --quiet-pull --no-color --wait --detach
+
+      - name: Test
+        run: docker compose exec app composer check
+
+      - uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: app-test
+          path: |
+            app/data/log/

@@ -1,0 +1,27 @@
+version: "3"
+
+server:
+  command: "php -c app.dev.ini bin/server"
+
+http:
+  address: "${SERVER_BIND:-127.0.0.1}:${SERVER_PORT:-80}"
+  max_request_size: 64
+  middleware:
+    - static
+  pool:
+    debug: true
+    supervisor:
+      exec_ttl: 15s
+      max_worker_memory: 128
+  static:
+    dir: "./public"
+    calculate_etag: true
+    weak: false
+    response:
+      "Cache-Control": "public, max-age=0, must-revalidate"
+      "X-Content-Type-Options": "nosniff"
+
+logs:
+  mode: development
+  level: debug
+  encoding: console
