@@ -7,7 +7,9 @@ namespace Framework\ServiceContainer;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
 
+use function array_filter;
 use function array_key_exists;
+use function array_keys;
 use function array_merge;
 
 class ServiceContainer implements ContainerInterface, ContainerConfiguration
@@ -160,16 +162,9 @@ class ServiceContainer implements ContainerInterface, ContainerConfiguration
     /** @return string[] */
     private function getAliasIdsForTargetId(string $targetId): array
     {
-        $aliasIds = [];
-
-        foreach ($this->aliases as $aliasId => $aliasTargetId) {
-            if ($aliasTargetId !== $targetId) {
-                continue;
-            }
-
-            $aliasIds[] = $aliasId;
-        }
-
-        return $aliasIds;
+        return array_keys(array_filter(
+            $this->aliases,
+            static fn (string $aliasTargetId) => $aliasTargetId === $targetId,
+        ));
     }
 }
