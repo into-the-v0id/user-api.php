@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Framework\ServiceContainer;
 
+use Framework\ServiceContainer\Exception\ServiceNotFound;
 use Psr\Container\ContainerInterface;
-use RuntimeException;
 
 use function array_filter;
 use function array_key_exists;
@@ -121,7 +121,7 @@ class ServiceContainer implements ContainerInterface, ContainerConfiguration
         } elseif ($this->fallbackContainer !== null) {
             $service = $this->fallbackContainer->get($id);
         } else {
-            throw new RuntimeException('err'); // TODO
+            throw new ServiceNotFound('Unable to find service with id: ' . $id, serviceId: $id);
         }
 
         $decorators = $this->getDecoratorsForIdRecursive($id);

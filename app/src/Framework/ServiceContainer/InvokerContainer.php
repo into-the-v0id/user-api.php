@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Framework\ServiceContainer;
 
-use InvalidArgumentException;
+use Framework\ServiceContainer\Exception\ServiceNotCreateable;
 use Invoker\Invoker;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionParameter;
-use RuntimeException;
 
 use function array_diff;
 use function array_keys;
@@ -53,17 +52,17 @@ class InvokerContainer implements ContainerInterface
     }
 
     /** {@inheritDoc} */
-    public function get(string $id)
+    public function get(string $id): mixed
     {
         if (! class_exists($id)) {
             if ($this->fallbackContainer !== null) {
                 return $this->fallbackContainer->get($id);
             }
 
-            throw new InvalidArgumentException(sprintf(
-                'Unable to create service with name %s because no such class exists',
+            throw new ServiceNotCreateable(sprintf(
+                'Unable to create service with id %s because no such class exists',
                 $id,
-            ));
+            ), serviceId: $id);
         }
 
         $reflection = new ReflectionClass($id);
@@ -72,10 +71,10 @@ class InvokerContainer implements ContainerInterface
                 return $this->fallbackContainer->get($id);
             }
 
-            throw new InvalidArgumentException(sprintf(
-                'Unable to create service with name %s because it is not instantiatable',
+            throw new ServiceNotCreateable(sprintf(
+                'Unable to create service with id %s because the class it is not instantiatable',
                 $id,
-            ));
+            ), serviceId: $id);
         }
 
         $constructor = $reflection->getConstructor();
@@ -99,15 +98,15 @@ class InvokerContainer implements ContainerInterface
                 $missingParameterIndexes,
             );
 
-            throw new RuntimeException(sprintf(
-                'Unable to create service with name %s because the following constructor parameters could not '
+            throw new ServiceNotCreateable(sprintf(
+                'Unable to create service with id %s because the following constructor parameters could not '
                     . 'be resolved: %s',
                 $id,
                 implode(', ', array_map(
                     static fn (ReflectionParameter $parameter) => $parameter->getType() . ' $' . $parameter->getName(),
                     $missingReflectionParameters,
                 )),
-            ));
+            ), serviceId: $id);
         }
 
         return $reflection->newInstance(...$resolvedParameters);
