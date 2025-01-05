@@ -47,7 +47,7 @@ class ServiceContainer implements ContainerInterface, ContainerConfiguration
     {
         $this->factories[$id] = $factory;
         $this->isShared[$id]  = $isShared;
-        unset($this->sharedInstances[$id]);
+        unset($this->aliases[$id], $this->sharedInstances[$id]);
     }
 
     public function alias(string $aliasId, string $targetId): void
